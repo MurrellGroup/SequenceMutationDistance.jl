@@ -53,4 +53,10 @@ function smd_mf(distances_matrix::Array{Float64,2};
     return (getobjectivevalue(m), (getvalue(flow)))
 end
 
+function smd_sum(distances_matrix::Array{Float64,2};
+                freq1::Vector{Float64}=Float64[],
+                freq2::Vector{Float64}=Float64[])
+	return smd_mf(distances_matrix, freq1, freq2, unbounded_first = true)[2] 
+		+ smd_mf(distances_matrix, freq1, freq2, unbounded_second = true)[2]
+end
 
