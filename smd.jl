@@ -60,3 +60,46 @@ function smd_sum(distances_matrix::Array{Float64,2};
 		+ smd_mf(distances_matrix, freq1, freq2, unbounded_second = true)[2]
 end
 
+function smd_distance_wrapper(distmat::Array{Float64,2}, inds1, inds2)
+    return smd_mf(distmat[inds1, :][:, inds2])[1]
+end
+
+function fst_wrapper(distmat, inds1, inds2)
+    l1 = length(inds1)
+    l2 = length(inds2)
+    
+    within = (sum([distmat[x,y] for x in inds1, y in inds1])/(l1  - 1 ) + (sum([distmat[x,y] for x in inds2, y in inds2])/(l2 - 1)))/(l1 + l2) 
+    between = mean([distmat[x,y] for x in inds1, y in inds2])
+    return (between - within)/between
+end
+
+function permutation_test(distmat::Array{Float64,2}; l1 = nothing, l2 = nothing, tests=10000, dist_func = smd_distance_wrapper, randvariation=true)
+    #Get the upper right quadrant of the huge matrix
+    
+    if l1 == nothing || l2 == nothing
+        l1 = trunc(Int, (size(distmat)[1])/2)
+        l2 = ceil(Int, (size(distmat)[1])/2)
+    end
+    
+    group1_selects = 1:l1
+    group2_selects = group1_selects + l2
+    
+    baseline = dist_func(distmat, group1_selects, group2_selects)
+        
+    array_of_distances = []
+    
+    for i in 1:tests
+        group1_selects = shuffle(1:(l1+l2))[1:l1]
+        group2_selects = [x for x in 1:(l1+l2) if !(x in group1_selects)]
+            
+        dist = dist_func(distmat, group1_selects, group2_selects)
+        push!(array_of_distances, dist)
+    end
+    
+    if randvariation
+        baseline += randn() * 0.00000001
+        dist_func = [x + (randn() * 0.00000001) for x in array_of_distances]
+    end
+    return array_of_distances, baseline
+    #return length(array_of_distances .> baseline) > 0 ? sum(array_of_distances .> baseline)/length(array_of_distances) : 1
+end
