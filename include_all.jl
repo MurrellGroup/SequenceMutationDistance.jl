@@ -1,4 +1,5 @@
-# For exporting names in imported packages to scripts that use BeNGS
+# For exporting names in imported packages to scripts using this module
+# TODO: maybe don't reexport anything (except maybe distances?)
 using Reexport
 
 @reexport using Levenshtein
@@ -13,3 +14,4 @@ include("align.jl")
 include("smd.jl")
 include("tree.jl")
 include("evodist.jl")
+include("utils.jl")
