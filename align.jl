@@ -599,3 +599,7 @@ function kmer_seeded_edit_dist(s1::String , s2::String;
     return matched_diffs + sum([levenshtein(mismatch1[i], mismatch2[i]) for i in 1:length(mismatch1)])
 end
 
+"""Wrapper for kmer_seeded_edit_dist for aligning amino acids"""
+function aa_kmer_seeded_edit_dist(s1::String, s2::String; wordlength = 30, skip = 5)
+    return kmer_seeded_edit_dist(s1, s2, wordlength=wordlength, skip=skip, aa_matches=true)
+end
