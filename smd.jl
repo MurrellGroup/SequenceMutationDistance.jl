@@ -1,10 +1,51 @@
 """distances[i, j] is distance from distr1[i] to distr2[j]"""
-function default_dist_matrix(distr1, distr2; k=6)
-    # create distance matrix using distmat function
+function dist_matrix(distr1, distr2; dist_met = kmer_seeded_edit_dist)
+    if distr1 == distr2
+        return symmetric_dist_matrix(distr1, dist_met = dist_met)
+    end
+        
     distances = zeros(length(distr1), length(distr2))
     for i in 1:length(distr1)
         for j in 1:length(distr2)
-            distances[i, j] = kmer_seeded_edit_dist(distr1[i], distr2[j])
+            distances[i, j] = dist_met(distr1[i], distr2[j])
+        end
+    end
+    return distances
+end
+
+"""dist_matrix but multithreaded instead"""
+function dist_matrix_mt(distr1, distr2; dist_met = kmer_seeded_edit_dist)
+    if distr1 == distr2
+        return symmetric_dist_matrix_mt(distr1, dist_met = dist_met)
+    end
+    
+    distances = zeros(length(distr1), length(distr2))
+    @sync @parallel for i in 1:length(distr1)
+        for j in 1:length(distr2)
+            distances[i, j] = dist_met(distr1[i], distr2[j])
+        end
+    end
+    return distances
+end
+
+
+"""similar to dist_matrix but where distr1 == distr2. Automatically called by dist_matrix"""
+function symmetric_dist_matrix(distr; dist_met = kmer_seeded_edit_dist)
+    distances = zeros(length(distr), length(distr))
+    for i in 1:length(distr)
+        for j in i+1:length(distr)
+            distances[i, j] = distances[j, i]  = dist_met(distr[i], distr[j])
+        end
+    end
+    return distances
+end
+
+"""similar to dist_matrix_mt but where distr1 == distr2. Automatically called by dist_matrix_mt"""
+function symmetric_dist_matrix_mt(distr; dist_met = kmer_seeded_edit_dist)
+    distances = zeros(length(distr), length(distr))
+    @sync @parallel for i in 1:length(distr)
+        for j in i+1:length(distr)
+            distances[i, j] = distances[j, i]  = dist_met(distr[i], distr[j])
         end
     end
     return distances
@@ -103,3 +144,4 @@ function permutation_test(distmat::Array{Float64,2}; l1 = nothing, l2 = nothing,
     return array_of_distances, baseline
     #return length(array_of_distances .> baseline) > 0 ? sum(array_of_distances .> baseline)/length(array_of_distances) : 1
 end
+
