@@ -333,8 +333,8 @@ end
 
 function drawtree(root::TreeNode; xStart::Float64=0.0, yStart::Float64=0.0, xDist::Float64 = 2.0, yDist::Float64 = 1.0, scaled::Bool = false, extend::Bool = false, 
         names::Bool = false, reversed::Bool = false, xEnd::Float64 = 0.0, bubbles::Bool = false, alpha = 1,
-        bubble_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(root))],
-        name_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(root))])
+        bubble_color_vector::Vector{String}=["#000000" for i in 1:maximum([x.seqindex for x in getleaflist(root)])],
+        name_color_vector::Vector{String}=["#000000" for i in 1:maximum([x.seqindex for x in getleaflist(root)])])
     
     levels = treedepth(root)
     nodes = getleaflist(root)
@@ -364,12 +364,10 @@ function drawtree(root::TreeNode; xStart::Float64=0.0, yStart::Float64=0.0, xDis
         yposdict[leaf] = yposarr[index]
         
         if (!isnull(leaf.parent))
-            plot([xStart + xposarr[index], xStart + reversemult * getdistfromroot(get(leaf.parent))/scale], [yposdict[leaf], yposdict[leaf]], "r-")
+            plot([xStart + xposarr[index], xStart + reversemult * getdistfromroot(get(leaf.parent))/scale], [yposdict[leaf], yposdict[leaf]], "k-")
         end
-        nodeextend = (min(abs(abs(xposarr[index]) - maximum(abs.(xposarr))), abs(extenddist/scale)))
-        if (extend)
-            plot([xposarr[index] + xStart + reversemult * nodeextend, xStart + reversemult * maximum(abs.(xposarr))], [yposdict[leaf], yposdict[leaf]], "k-", alpha=alpha)
-        end
+        #nodeextend = (min(abs(abs(xposarr[index]) - maximum(abs.(xposarr))), abs(extenddist/scale)))
+        nodeextend = 0 
         if (names)
             if !reversed
                 annotate(string(leaf.name, ["-" for i in 1:(name_size - length(leaf.name))]...), [xStart + reversemult * (maximum(abs.(xposarr))), yposdict[leaf]], horizontalalignment="left", verticalalignment="center", family="monospace", color=name_color_vector[leaf.seqindex])
@@ -379,7 +377,10 @@ function drawtree(root::TreeNode; xStart::Float64=0.0, yStart::Float64=0.0, xDis
             
         end
         if (bubbles)
-            scatter(xStart + xposarr[index], yposdict[leaf], c=bubble_color_vector[leaf.seqindex])
+            scatter(xStart + xposarr[index], yposdict[leaf], c=bubble_color_vector[leaf.seqindex], zorder=20)
+        end
+	if (extend)
+            plot([xposarr[index] + xStart + reversemult * nodeextend, xStart + reversemult * maximum(abs.(xposarr))], [yposdict[leaf], yposdict[leaf]], color="0.5", alpha=alpha)
         end
     end
     
@@ -405,7 +406,7 @@ function drawtree(root::TreeNode; xStart::Float64=0.0, yStart::Float64=0.0, xDis
             yposdict[node] = mean(childPosArr)
             
             xPos = xStart + (getdistfromroot(node)/scale) * reversemult
-            plot([xPos, xPos], [maximum(childPosArr), minimum(childPosArr)], "r-")
+            plot([xPos, xPos], [maximum(childPosArr), minimum(childPosArr)], "k-")
             
             if isnull(node.parent)
                 xEnd = xStart
@@ -413,7 +414,7 @@ function drawtree(root::TreeNode; xStart::Float64=0.0, yStart::Float64=0.0, xDis
                 xEnd = xStart + (reversemult * (getdistfromroot(get(node.parent))/scale))
             end
 
-            plot([xPos, xEnd], [yposdict[node], yposdict[node]], "r-")
+            plot([xPos, xEnd], [yposdict[node], yposdict[node]], "k-")
         end
     end
     
