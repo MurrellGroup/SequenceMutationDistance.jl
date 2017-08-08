@@ -283,7 +283,6 @@ function banded_nw_align(s1::String, s2::String; edge_reduction = 0.99, band_coe
     return join(ali1arr), join(ali2arr)                                         
 end
 
-
 #--------Kmer internals---------
 
 function unique_key(dicto::Dict{String, Int}, keyo::String, indo::Int)
@@ -313,6 +312,39 @@ function sorted_matches(s1, s2, wordlength, skip, aligncodons)
         end
     end
     
+    intersection = Dict{String, UInt8}()
+    for (word, ind) in word_dict1
+        if ind > 0 && haskey(word_dict2, word) && word_dict2[word] > 0
+            intersection[word] = 0
+        end
+    end
+    common = collect(keys(intersection))
+    matches = zeros(Int, length(common), 2)       
+    for i in 1:length(common)
+        matches[i, 1] = word_dict1[common[i]]
+        matches[i, 2] = word_dict2[common[i]]
+    end
+    return sortrows(matches, by=x->(x[1]))
+end
+
+"""Create sorted list of matches of amino acid kmers in any reference frame."""
+function sorted_aa_matches(str1, str2, wordlength)
+    word_dict1 = Dict{String, Int}()
+    word_dict2 = Dict{String, Int}()
+    # get amino acid sequence in each reference frame
+    s1s = generate_aa_seqs(str1)
+    s2s = generate_aa_seqs(str2)
+    for (offset, s1) in enumerate(s1s)
+        for i in 1:(length(s1) - (div(wordlength, 3) - 1))
+            # offset acounts for the shift in index due to being in a different reference frame.
+            unique_key(word_dict1, s1[i:i+(div(wordlength, 3) - 1)], i*3 + offset - 3)
+        end
+    end
+    for (offset, s2) in enumerate(s2s)
+        for i in 1:(length(s2) - (div(wordlength, 3) - 1))
+            unique_key(word_dict2, s2[i:i+(div(wordlength, 3) - 1)], i*3 + offset - 3)
+        end
+    end    
     intersection = Dict{String, UInt8}()
     for (word, ind) in word_dict1
         if ind > 0 && haskey(word_dict2, word) && word_dict2[word] > 0
@@ -386,6 +418,17 @@ function merge_overlapping(matches, wordlength, skip)
         end
     end
     return range_inds
+end
+
+# get matches
+function get_matches(s1, s2, clean, range_inds, wordlength)
+    s1matches = [clean[range_inds[i], 1] + [0, wordlength - 1]
+                 for i in 1:length(range_inds)]
+    s2matches = [clean[range_inds[i], 2] + [0, wordlength - 1]
+                 for i in 1:length(range_inds)]
+    match1 = [s1[i[1]:i[2]] for i in s1matches]
+    match2 = [s2[i[1]:i[2]] for i in s2matches]
+    return match1, match2
 end
 
 function get_mismatches(s1, s2, matches, range_inds, wordlength)
@@ -479,16 +522,10 @@ function kmer_seeded_align(s1::String, s2::String;
 
     clean = clean_matches(sorted, wordlength, skip)
     range_inds = merge_overlapping(clean, wordlength, skip)
+    # get matches
+    match1, match2 = get_matches(s1, s2, clean, range_inds, wordlength)
     # get mismatches
     mismatch1, mismatch2 = get_mismatches(s1, s2, clean, range_inds, wordlength)
-
-    # get matches
-    s1matches = [clean[range_inds[i], 1] + [0, wordlength - 1]
-                 for i in 1:length(range_inds)]
-    s2matches = [clean[range_inds[i], 2] + [0, wordlength - 1]
-                 for i in 1:length(range_inds)]
-    match1 = [s1[i[1]:i[2]] for i in s1matches]
-    match2 = [s2[i[1]:i[2]] for i in s2matches]
 
     alignedStrings = collect(nw_align(mismatch1[1], mismatch2[1]))
     for i in 1:(length(match1))
@@ -508,17 +545,21 @@ function kmer_seeded_align(s1::String, s2::String;
     return alignedStrings
 end
 
+"""If aa_matches = true, will attempt to find amino acid matches in any reference frame, 
+and add the nucleotide Hamming distance of these matches to Levenshtein distances of mismatches."""
 function kmer_seeded_edit_dist(s1::String , s2::String;
                                wordlength = 30,
-                               skip = 10,
-                               aligncodons = false)
-    # ToDo:
-    # 1: Make this recurse. So instead of calling Levenshtein on the
-    # set of mismatches strings, it calls itself.
+                               skip = 5,
+                               aa_matches = false)
     if (length(s1) < wordlength || length(s2) < wordlength || s1 == "" || s2 == "")
         return levenshtein(s1, s2)
     end
-    sorted = sorted_matches(s1, s2, wordlength, skip, aligncodons)
+    if aa_matches
+        sorted = sorted_aa_matches(s1, s2, wordlength)
+        skip = 1
+    else
+        sorted = sorted_matches(s1, s2, wordlength, skip, false)
+    end
     if size(sorted)[1] == 0
         return levenshtein(s1, s2)
     end
@@ -531,8 +572,30 @@ function kmer_seeded_edit_dist(s1::String , s2::String;
             return levenshtein(s1, s2)
         end
     end
+    trim = 0
+    if aa_matches
+        # trim word matches to avoid double counting some errors on ends of matches
+        trim = max(div(wordlength, 5), 1)
+        for i in 1:size(sorted)[1]
+            sorted[i, 1] += trim
+            sorted[i, 2] += trim
+        end
+    end
     clean = clean_matches(sorted, wordlength, skip)
     range_inds = merge_overlapping(clean, wordlength, skip)
-    mismatch1, mismatch2 = get_mismatches(s1, s2, clean, range_inds, wordlength)
-    return sum([levenshtein(mismatch1[i], mismatch2[i]) for i in 1:length(mismatch1)])
+    # 2*trim to accomodate trimmed word matches on each side of the word match
+    mismatch1, mismatch2 = get_mismatches(s1, s2, clean, range_inds, wordlength - 2*trim)
+    matched_diffs = 0
+    if aa_matches
+        match1, match2 = get_matches(s1, s2, clean, range_inds, wordlength - 2*trim)
+        for i in 1:length(match1)
+            for j in 1:length(match1[i])
+                if match1[i][j] != match2[i][j]
+                    matched_diffs += 1
+                end
+            end
+        end
+    end
+    return matched_diffs + sum([levenshtein(mismatch1[i], mismatch2[i]) for i in 1:length(mismatch1)])
 end
+
