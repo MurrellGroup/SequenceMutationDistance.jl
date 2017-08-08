@@ -11,7 +11,7 @@ using Reexport
 @reexport using Clp
 
 include("align.jl")
-include("smd.jl")
+include("smdfuncs.jl")
 include("tree.jl")
 include("evodist.jl")
 include("utils.jl")
