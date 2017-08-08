@@ -12,4 +12,4 @@ using Reexport
 include("align.jl")
 include("smd.jl")
 include("tree.jl")
-
+include("evodist.jl")

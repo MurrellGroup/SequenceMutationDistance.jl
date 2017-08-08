@@ -226,7 +226,7 @@ function getqmatrix(distmat::Array{Float64, 2})
     return newmat
 end
 
-function treebuild(sequences::Array{String,1}; distmat = nothing; namearr::Array{String,1} = ["orig$i" for i in 1:length(sequences)], disallow_negative_length=true)
+function treebuild(sequences::Array{String,1}; distmat = nothing, namearr::Array{String,1} = ["orig$i" for i in 1:length(sequences)], disallow_negative_length=true)
     if distmat == nothing
       distmat = dist_matrix(sequences, sequences)
     end
@@ -332,7 +332,7 @@ function getdistfromroot(node::TreeNode)
 end
 
 function drawtree(root::TreeNode; xStart::Float64=0.0, yStart::Float64=0.0, xDist::Float64 = 2.0, yDist::Float64 = 1.0, scaled::Bool = false, extend::Bool = false, 
-        names::Bool = false, reversed::Bool = false, xEnd::Float64 = 0.0, bubbles::Bool = false, 
+        names::Bool = false, reversed::Bool = false, xEnd::Float64 = 0.0, bubbles::Bool = false, alpha = 1,
         bubble_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(root))],
         name_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(root))])
     
@@ -368,7 +368,7 @@ function drawtree(root::TreeNode; xStart::Float64=0.0, yStart::Float64=0.0, xDis
         end
         nodeextend = (min(abs(abs(xposarr[index]) - maximum(abs.(xposarr))), abs(extenddist/scale)))
         if (extend)
-            plot([xposarr[index] + xStart + reversemult * nodeextend, xStart + reversemult * maximum(abs.(xposarr))], [yposdict[leaf], yposdict[leaf]], "k-", alpha=0.15)
+            plot([xposarr[index] + xStart + reversemult * nodeextend, xStart + reversemult * maximum(abs.(xposarr))], [yposdict[leaf], yposdict[leaf]], "k-", alpha=alpha)
         end
         if (names)
             if !reversed
@@ -496,7 +496,7 @@ function ladderize(tree)
     return newtree
 end
 
-function drawtreeswithflow(tree1, tree2, flow; figsize=(20,10), scaled=false, names = false, bubbles = false, 
+function drawtreeswithflow(tree1, tree2, flow; figsize=(20,10), scaled=false, names = false, bubbles = false,
         tree1_bubble_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(tree1))],
         tree1_name_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(tree1))],
         tree2_bubble_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(tree2))],
