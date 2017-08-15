@@ -226,6 +226,22 @@ function getqmatrix(distmat::Array{Float64, 2})
     return newmat
 end
 
+function diagonal_ignore_indmin(matrix)
+    min_val = Inf
+    ind_min_x = 0
+    ind_min_y = 0
+    for x in 1:(size(matrix)[1])
+        for y in 1:(size(matrix)[2])
+            if x != y && matrix[x,y] < min_val
+                min_val = matrix[x,y]
+                ind_min_x = x
+                ind_min_y = y
+            end
+        end
+    end
+    return (ind_min_x,ind_min_y)
+end
+
 function treebuild(sequences::Array{String,1}; distmat = nothing, namearr::Array{String,1} = ["orig$i" for i in 1:length(sequences)], disallow_negative_length=true)
     if distmat == nothing
       distmat = dist_matrix(sequences, sequences)
@@ -245,7 +261,8 @@ function treebuild(sequences::Array{String,1}; distmat = nothing, namearr::Array
         n = size(distmat)[1]
         
         qmat = getqmatrix(Array{Float64,2}(distmat))
-        ind1, ind2 = ind2sub(size(qmat), indmin(qmat))
+
+        ind1, ind2 = diagonal_ignore_indmin(qmat)
         
         if (ind1 == ind2)
             error("Something broke: Fix qMatrix to ignore diagonal zeros")
@@ -257,15 +274,15 @@ function treebuild(sequences::Array{String,1}; distmat = nothing, namearr::Array
         nodes[ind1].branchlength = ((1/2) * distmat[ind1, ind2]) + (1/(2*(n-2)))*(sum(distmat[ind1,:]) - sum(distmat[ind2,:]))
         nodes[ind2].branchlength = distmat[ind1, ind2] - nodes[ind1].branchlength
        
-		if disallow_negative_length	
-			if (nodes[ind1].branchlength < 0)
-				nodes[ind2].branchlength += abs(nodes[ind1].branchlength)
-				nodes[ind1].branchlength = 0
-			elseif (nodes[ind2].branchlength <0)
-				nodes[ind1].branchlength += abs(nodes[ind2].branchlength)
-				nodes[ind2].branchlength = 0
-			end 
-		end
+    if disallow_negative_length 
+      if (nodes[ind1].branchlength < 0)
+        nodes[ind2].branchlength += abs(nodes[ind1].branchlength)
+        nodes[ind1].branchlength = 0
+      elseif (nodes[ind2].branchlength <0)
+        nodes[ind1].branchlength += abs(nodes[ind2].branchlength)
+        nodes[ind2].branchlength = 0
+      end 
+    end
 
         addchild(newnode, nodes[ind1])
         addchild(newnode, nodes[ind2])
