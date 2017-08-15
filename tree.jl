@@ -332,9 +332,11 @@ function getdistfromroot(node::TreeNode)
 end
 
 function drawtree(root::TreeNode; xStart::Float64=0.0, yStart::Float64=0.0, xDist::Float64 = 2.0, yDist::Float64 = 1.0, scaled::Bool = false, extend::Bool = false, 
-        names::Bool = false, reversed::Bool = false, xEnd::Float64 = 0.0, bubbles::Bool = false, alpha = 1,
-        bubble_color_vector::Vector{String}=["#000000" for i in 1:maximum([x.seqindex for x in getleaflist(root)])],
-        name_color_vector::Vector{String}=["#000000" for i in 1:maximum([x.seqindex for x in getleaflist(root)])])
+        names::Bool = false, reversed::Bool = false, xEnd::Float64 = 0.0, bubbles::Bool = false, 
+        bubble_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(root))],
+        name_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(root))],
+        branch_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(root))]
+        )
     
     levels = treedepth(root)
     nodes = getleaflist(root)
@@ -364,10 +366,11 @@ function drawtree(root::TreeNode; xStart::Float64=0.0, yStart::Float64=0.0, xDis
         yposdict[leaf] = yposarr[index]
         
         if (!isnull(leaf.parent))
-            plot([xStart + xposarr[index], xStart + reversemult * getdistfromroot(get(leaf.parent))/scale], [yposdict[leaf], yposdict[leaf]], "k-")
+            plot([xStart + xposarr[index], xStart + reversemult * getdistfromroot(get(leaf.parent))/scale], [yposdict[leaf], yposdict[leaf]], color=branch_color_vector[leaf.seqindex])
         end
         #nodeextend = (min(abs(abs(xposarr[index]) - maximum(abs.(xposarr))), abs(extenddist/scale)))
-        nodeextend = 0 
+        nodeextend = 0
+
         if (names)
             if !reversed
                 annotate(string(leaf.name, ["-" for i in 1:(name_size - length(leaf.name))]...), [xStart + reversemult * (maximum(abs.(xposarr))), yposdict[leaf]], horizontalalignment="left", verticalalignment="center", family="monospace", color=name_color_vector[leaf.seqindex])
@@ -379,8 +382,8 @@ function drawtree(root::TreeNode; xStart::Float64=0.0, yStart::Float64=0.0, xDis
         if (bubbles)
             scatter(xStart + xposarr[index], yposdict[leaf], c=bubble_color_vector[leaf.seqindex], zorder=20)
         end
-	if (extend)
-            plot([xposarr[index] + xStart + reversemult * nodeextend, xStart + reversemult * maximum(abs.(xposarr))], [yposdict[leaf], yposdict[leaf]], color="0.5", alpha=alpha)
+        if (extend)
+            plot([xposarr[index] + xStart + reversemult * nodeextend, xStart + reversemult * maximum(abs.(xposarr))], [yposdict[leaf], yposdict[leaf]], color = "0.8", alpha=0.15)
         end
     end
     
@@ -497,11 +500,14 @@ function ladderize(tree)
     return newtree
 end
 
-function drawtreeswithflow(tree1, tree2, flow; figsize=(20,10), scaled=false, names = false, bubbles = false,
+function drawtreeswithflow(tree1, tree2, flow; figsize=(20,10), scaled=false, names = false, bubbles = false, 
         tree1_bubble_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(tree1))],
         tree1_name_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(tree1))],
+        tree1_branch_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(tree1))],
         tree2_bubble_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(tree2))],
-        tree2_name_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(tree2))], thickness::Float64 = 2.0)
+        tree2_name_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(tree2))], 
+        tree2_branch_color_vector::Vector{String}=["#000000" for i in 1:length(getleaflist(tree1))],
+        thickness::Float64 = 2.0)
     figure(figsize=figsize)
     inter_tree_ratio = 0.5                                                            
     yDist = 1.0           
@@ -509,7 +515,7 @@ function drawtreeswithflow(tree1, tree2, flow; figsize=(20,10), scaled=false, na
     char_width = 1/8
         
     max_right_branch = maximum(getdistfromroot.(getnodelist(tree2)))
-    x1_start, x1_end, name_size_1 = drawtree(tree1; extend=true, names = names, reversed = false, yDist = yDist, bubble_color_vector=tree1_bubble_color_vector, name_color_vector=tree1_name_color_vector, scaled=scaled, bubbles=bubbles)
+    x1_start, x1_end, name_size_1 = drawtree(tree1; extend=true, names = names, reversed = false, yDist = yDist, bubble_color_vector=tree1_bubble_color_vector, name_color_vector=tree1_name_color_vector, branch_color_vector=tree1_branch_color_vector, scaled=scaled, bubbles=bubbles)
     
     trees_size = (x1_end + max_right_branch)
     inter_tree_dist = inter_tree_ratio * trees_size
@@ -519,7 +525,7 @@ function drawtreeswithflow(tree1, tree2, flow; figsize=(20,10), scaled=false, na
     #word_size = name_size_1 * width of each character * points per inch 
     word_size_1 = (name_size_1 * char_width * ( total_size / figsize[1]))
     
-    x2_start, x2_end, name_size_2 = drawtree(tree2; extend=true, names = names, reversed = true, xEnd = x1_end + inter_tree_dist, yDist = yDist, bubble_color_vector=tree1_bubble_color_vector, name_color_vector=tree1_name_color_vector, scaled=scaled, bubbles=bubbles)
+    x2_start, x2_end, name_size_2 = drawtree(tree2; extend=true, names = names, reversed = true, xEnd = x1_end + inter_tree_dist, yDist = yDist, bubble_color_vector=tree2_bubble_color_vector, branch_color_vector=tree2_branch_color_vector, name_color_vector=tree2_name_color_vector, scaled=scaled, bubbles=bubbles)
                                                  
     word_size_2 = (name_size_2 * char_width * ( total_size / figsize[1]))
     
