@@ -555,6 +555,9 @@ function kmer_seeded_edit_dist(s1::String , s2::String;
         return levenshtein(s1, s2)
     end
     if aa_matches
+        if wordlength % 3 != 0
+            error("If aa_matches == true, wordlength must be divisible by 3")
+        end
         sorted = sorted_aa_matches(s1, s2, wordlength)
         skip = 1
     else
@@ -599,3 +602,176 @@ function kmer_seeded_edit_dist(s1::String , s2::String;
     return matched_diffs + sum([levenshtein(mismatch1[i], mismatch2[i]) for i in 1:length(mismatch1)])
 end
 
+"""Wrapper for kmer_seeded_edit_dist for aligning amino acids"""
+function aa_kmer_seeded_edit_dist(s1::String, s2::String; wordlength = 30, skip = 5)
+    return kmer_seeded_edit_dist(s1, s2, wordlength=wordlength, skip=skip, aa_matches=true)
+end
+
+"""Like kmer_seeded_align but for locally aligning a query to a reference.
+First arg `s1` is reference sequence; other arg `s2` will be trimmed or
+expanded with gaps. trimpadding keeps padding around the matched portion of  `s2`
+if it is being locally aligned to a shorter reference seq `s1`.
+"""
+function loc_kmer_seeded_align(s1::String, s2::String;
+                           wordlength = 30,
+                           skip = 10,
+                           trimpadding = 100,
+                           debug::Bool=false)
+    if s1 == "" || s2 == ""
+        return local_align(s1, s2, rightaligned=false)
+    end
+
+    # recurse to smaller word size:
+    sorted = sorted_matches(s1, s2, wordlength, skip, false)
+    if size(sorted)[1] == 0
+        return local_align(s1, s2, rightaligned=false)
+    end
+    if matches_are_inconsistent(sorted)
+        sorted = longest_incr_subseq(sorted)
+        if matches_are_inconsistent(sorted)
+            println("Notice: Word matching produced inconsistent ordering.",
+                    " Consider a larger word size. Returning full DP alignment.")
+            return local_align(s1, s2, rightaligned=false)
+        end
+    end
+
+    clean = clean_matches(sorted, wordlength, skip)
+    range_inds = merge_overlapping(clean, wordlength, skip)
+    # get mismatches
+    mismatch1, mismatch2 = get_mismatches(s1, s2, clean, range_inds, wordlength)
+    # partition into front, middle, end mismatches, where middle is between beginning and end matching words
+    frontmismatch1, mismatch1, endmismatch1 = mismatch1[1], mismatch1[2:end-1], mismatch1[end]
+    frontmismatch2, mismatch2, endmismatch2 = mismatch2[1], mismatch2[2:end-1], mismatch2[end]
+    # get matches
+    match1, match2 = get_matches(s1, s2, clean, range_inds, wordlength)
+
+    alignedStrings = ["", ""]
+    for i in 1:(length(match1)-1)
+        # append a match
+        alignedStrings[1] = alignedStrings[1] * match1[i]
+        alignedStrings[2] = alignedStrings[2] * match2[i]
+        # append a mismatch
+        al1, al2 = nw_align(mismatch1[i], mismatch2[i])
+        alignedStrings[1] = alignedStrings[1] * al1
+        alignedStrings[2] = alignedStrings[2] * al2
+    end
+    # append final match
+    alignedStrings[1] = alignedStrings[1] * match1[end]
+    alignedStrings[2] = alignedStrings[2] * match2[end]
+
+    # trim query ends to trimpadding + length of ends of reference before local alignment to go fast
+    if trimpadding > 0
+        frontmismatch2 = frontmismatch2[max(1, end-length(frontmismatch1)-trimpadding):end]
+        endmismatch2 = endmismatch2[1:end-length(endmismatch1)-trimpadding]
+    end
+    # do semiglobal alignment with beginning and ends and make them closer to the middle matches
+    # reverse end mismatches to make local_align's default right alignment be left alignment
+    fali1, fali2 = local_align(frontmismatch1, frontmismatch2, refend=true)
+    eali1, eali2 = local_align(reverse(endmismatch1), reverse(endmismatch2), refend=true)
+    eali1, eali2 = reverse(eali1), reverse(eali2)
+    alignedStrings[1] = fali1*alignedStrings[1]*eali1
+    alignedStrings[2] = fali2*alignedStrings[2]*eali2
+
+    if debug
+        if (degap(alignedStrings[1]) != degap(s1) || degap(alignedStrings[2]) != degap(s2))
+            error("Aligned strings do not match original strings")
+        end
+    end
+    return alignedStrings
+end
+
+
+"""
+Aligns a reference and query sequence locally. rightaligned=true keeps the
+right ends of each sequence in final alignment; refend keeps the beginning/left
+end of `ref`. If you want to keep both ends of both strings, use nw_align.
+"""
+function local_align(ref::String, query::String; mismatch_score = -1, 
+                            match_score = 1, gap_penalty = -1, 
+                            rightaligned=true, refend = false)
+    s1 = ref
+    s2 = query
+    # Populate Scores
+    scoremat = zeros(length(s1)+1, length(s2)+1)
+    scorematdirs = zeros(length(s1), length(s2))
+    hiscore = 0
+    hiscore_ij = (0, 0)
+    for i in 2:size(scoremat)[1]
+        for j in 2:size(scoremat)[2]
+            # indexes indications: 1 = left and up, 2 = up, 3 = left, 4 = terminate (0)
+            score_ij = [
+                        scoremat[i-1, j-1] + (s1[i-1] == s2[j-1] ? match_score : mismatch_score),
+                        scoremat[i-1, j] + gap_penalty,
+                        scoremat[i, j-1] + gap_penalty,
+                        0
+                    ]
+            # record index of max in matrix, track current value and location of high score
+            ind = indmax(score_ij)
+            scoremat[i, j] = score_ij[ind]
+            scorematdirs[i-1, j-1] = ind
+            if score_ij[ind] > hiscore
+                hiscore = score_ij[ind]
+                hiscore_ij = (i-1, j-1)
+            end
+        end
+    end
+
+    # Traceback Path
+    i, j = size(scorematdirs)
+    if !rightaligned
+        i, j = hiscore_ij
+    end
+    backtrace = Array{UInt8}(length(s1) + length(s2))
+    step = 0
+    while i > 0 && j > 0
+        direction = scorematdirs[i, j]
+        if direction == 4
+            break
+        end
+        step += 1
+        backtrace[step] = direction
+        if direction == 1
+            # both chars
+            i -= 1
+            j -= 1
+        elseif direction == 2
+            # s1 char, s2 gap
+            i -= 1
+        else  # direction == 3
+            # s1 gap, s2 char
+            j -= 1
+        end
+    end
+    # run along edges to end
+    while refend && i > 0
+        step += 1
+        backtrace[step] = 2
+        i -= 1
+    end
+    
+    # Construct Strings
+    ali1arr = Array{Char}(step)
+    ali2arr = Array{Char}(step)
+    ind1 = 0
+    ind2 = 0
+    for k in 1:step
+        dir = backtrace[k]
+        if dir == 1
+            ali1arr[k] = s1[end-ind1]
+            ali2arr[k] = s2[end-ind2]
+            ind1 += 1
+            ind2 += 1
+        elseif dir == 2
+            ali1arr[k] = s1[end-ind1]
+            ali2arr[k] = '-'
+            ind1 += 1
+        elseif dir == 3
+            ali2arr[k] = s2[end-ind2]
+            ali1arr[k] = '-'
+            ind2 += 1
+        else
+            error("OHNO")
+        end
+    end
+    return join(reverse(ali1arr)), join(reverse(ali2arr))
+end

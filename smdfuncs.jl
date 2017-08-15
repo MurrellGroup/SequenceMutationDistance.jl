@@ -128,13 +128,18 @@ function permutation_test(distmat::Array{Float64,2}; l1 = nothing, l2 = nothing,
     baseline = dist_func(distmat, group1_selects, group2_selects)
         
     array_of_distances = []
+    #array_of_distances = zeros(Float64, tests)
     
     for i in 1:tests
+        # permuted = shuffle(1:(l1+l2))
+        # group1_selects = permuted[1:l1]
+        # group2_selects = permuted[l1+1:end]
         group1_selects = shuffle(1:(l1+l2))[1:l1]
         group2_selects = [x for x in 1:(l1+l2) if !(x in group1_selects)]
             
         dist = dist_func(distmat, group1_selects, group2_selects)
         push!(array_of_distances, dist)
+        #array_of_distances[i] = dist
     end
     
     if randvariation

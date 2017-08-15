@@ -17,3 +17,20 @@ function generate_aa_seqs(str::String)
     return aa1, aa2, aa3
 end
 
+
+function do_some_stuff(s1::String, s2::String)
+    a, b = loc_kmer_seeded_align(s1, s2)
+    dst = kmer_seeded_edit_dist(degap(a), degap(b))
+    for c in s1
+        if c == 'N'
+            dst -= 1
+        end
+    end
+    for c in s2
+        if c == 'N'
+            dst -= 1
+        end
+    end
+    return dst
+end
+
