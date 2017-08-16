@@ -18,17 +18,16 @@ function generate_aa_seqs(str::String)
 end
 
 
-function do_some_stuff(s1::String, s2::String)
-    a, b = loc_kmer_seeded_align(s1, s2)
-    dst = kmer_seeded_edit_dist(degap(a), degap(b))
-    for c in s1
-        if c == 'N'
-            dst -= 1
-        end
+function local_edit_dist(s1::String, s2::String)
+    str1, str2 = s1, s2
+    if length(s1) > length(s2)
+        str1, str2 = s2, s1
     end
-    for c in s2
-        if c == 'N'
-            dst -= 1
+    a, b = loc_kmer_seeded_align(str1, str2)
+    dst = 0
+    for i in 1:length(a)
+        if a[i] != b[i] && a[i] != 'N' && b[i] != 'N'
+            dst += 1
         end
     end
     return dst
