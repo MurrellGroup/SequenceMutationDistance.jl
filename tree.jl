@@ -311,6 +311,82 @@ function treebuild(sequences::Array{String,1}; distmat = nothing, namearr::Array
     end
     return nodes[1]
 end
+
+function treebuild_upgma(sequences::Array{String,1}; distmat = nothing, namearr::Array{String,1} = ["orig$i" for i in 1:length(sequences)], disallow_negative_length=true)
+    if distmat == nothing
+      distmat = dist_matrix(sequences, sequences)
+    end
+    weights = ones(size(distmat)[1])
+    nodes = [TreeNode(0.0, namearr[i], MyNodeData(sequences[i])) for i in 1:length(sequences)]
+    dists = zeros(size(distmat)[1])
+    for (i,node) in enumerate(nodes)
+        node.seqindex = i
+    end
+    newnodenum = 1
+    ind1, ind2 = 0,0
+    
+    if length(namearr) != length(sequences)
+        error("Incorrect number of names")
+    end
+        
+    for i in 1:(length(sequences)-2)
+        n = size(distmat)[1]
+        
+        ind1, ind2 = diagonal_ignore_indmin(distmat)
+        
+        if (ind1 == ind2)
+            error("Something broke: Fix distmat to ignore diagonal zeros")
+        end
+            
+        newnode = TreeNode(0.0, "inferred$newnodenum")
+        newnodenum += 1
+        
+        nodes[ind1].branchlength = distmat[ind1, ind2]/2 - dists[ind1]
+        nodes[ind2].branchlength = distmat[ind1, ind2]/2 - dists[ind2]
+       
+    #=if disallow_negative_length
+      if (nodes[ind1].branchlength < 0)
+        nodes[ind2].branchlength += abs(nodes[ind1].branchlength)
+        nodes[ind1].branchlength = 0
+      elseif (nodes[ind2].branchlength <0)
+        nodes[ind1].branchlength += abs(nodes[ind2].branchlength)
+        nodes[ind2].branchlength = 0
+      end 
+    end=#
+
+        addchild(newnode, nodes[ind1])
+        addchild(newnode, nodes[ind2])
+        
+        deleteat!(nodes, sort([ind1, ind2]))
+        push!(nodes, newnode)
+
+        push!(dists, distmat[ind1, ind2]/2)
+        deleteat!(dists, sort([ind1, ind2]))
+        
+        remaininds = filter(x -> (x != ind1 && x != ind2), 1:n)
+        
+        #This connects the last two nodes
+        if length(nodes) == 2
+            nodes[1].branchlength = distmat[remaininds[1], ind1] - dists[1]
+            addchild(nodes[2], nodes[1])
+            deleteat!(nodes, 1)
+            break
+        end
+            
+        newrow = []
+        for j in remaininds
+            push!(newrow, ((weights[ind1] * distmat[j, ind1]) + (weights[ind2] *distmat[j,ind2]))/(weights[ind1] + weights[ind2]))
+        end
+        
+        distmat = hcat(distmat[remaininds, remaininds], newrow)
+        push!(newrow, 0)
+        distmat = vcat(distmat, newrow')
+
+        push!(weights, weights[ind1] + weights[ind2])
+        deleteat!(weights, sort([ind1, ind2]))
+    end
+    return nodes[1]
+end
             
 function treedepth(node::TreeNode)
     if isleafnode(node)
