@@ -446,7 +446,7 @@ function gettotaldist(tree1::TreeNode, tree2::TreeNode, flow; ignorefreq::Bool =
     yposarr2 = linspace(1, -1, length(getleaflist(tree2)))
     
     if ignorefreq
-        map(x-> x != 0? 1.0 : 0.0, flow)
+        flow = map(x-> x != 0? 1.0 : 0.0, flow)
     end
     
     ordered_flow = flow[getorder(tree1),getorder(tree2)]
@@ -469,7 +469,7 @@ function countcrossings(tree1::TreeNode, tree2::TreeNode, flow; ignorefreq::Bool
     yposarr2 = linspace(1, -1, length(getleaflist(tree2)))
     
     if ignorefreq
-        map(x-> x != 0? 1.0 : 0.0, flow)
+        flow = map(x-> x != 0? 1.0 : 0.0, flow)
     end
     
     ordered_flow = flow[getorder(tree1),getorder(tree2)]
@@ -529,6 +529,7 @@ function drawtreeswithflow(tree1, tree2, flow; figsize=(20,10), scaled=false, na
     inter_tree_ratio = 0.5                                                            
     yDist = 1.0           
     min_width = 0.05
+    min_alpha = 0.1
     char_width = 1/8
         
     max_right_branch = maximum(getdistfromroot.(getnodelist(tree2)))
@@ -557,7 +558,7 @@ function drawtreeswithflow(tree1, tree2, flow; figsize=(20,10), scaled=false, na
     for i in 1:size(flow)[1]                                                        
         for j in 1:size(flow)[2]                                                    
             if ordered_flow[i,j] != 0                                                       
-                plot([x1_end + word_size_1, x2_end - word_size_2], [y1arr[i], y2arr[j]], linewidth=thickness*(min_width + ordered_flow[i,j]), "g-")
+                plot([x1_end + word_size_1, x2_end - word_size_2], [y1arr[i], y2arr[j]], linewidth=thickness*(min_width + ordered_flow[i,j]), "g-", alpha= max(1.0, 0.1 + (ordered_flow[i,j]/maximum(ordered_flow))))
             end                                                                     
         end                         
     end                             
