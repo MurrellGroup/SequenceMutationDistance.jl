@@ -94,7 +94,7 @@ function mesearch(fl::String; error_rate = 0.005, out = fl[1:end-6]*"-mesearched
     seqfreqs = sorted_freqs(seqs)
     toplen = length(seqfreqs[1][2])
     numstay = seqfreqs[1][1] *numseqs
-    numchange = numstay / ((1 - error_rate) ^ toplen)
+    numchange = numstay / ((1 - error_rate) ^ toplen) - stay
     println("numchange: ", numchange)
     lambda = numchange / (3 * toplen)
     cutoff_freq = 1
@@ -102,7 +102,9 @@ function mesearch(fl::String; error_rate = 0.005, out = fl[1:end-6]*"-mesearched
         cutoff_freq += 1
     end
     println("Using cutoff of $cutoff_freq occurrences")
-
+    
+    # account for weird observed distributions
+    cutoff_freq = min(numstay, cutoff_freq)
     cutoff_freq /= numseqs
     k = 5
     centroids = Array{Any, 1}[]
