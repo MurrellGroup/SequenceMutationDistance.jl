@@ -94,7 +94,7 @@ function menoise(fl::String; error_rate = 0.005, out = fl[1:end-6]*"-menoiseed.f
     seqfreqs = sorted_freqs(seqs)
     toplen = length(seqfreqs[1][2])
     numstay = seqfreqs[1][1] *numseqs
-    numchange = numstay / ((1 - error_rate) ^ toplen) - stay
+    numchange = numstay / ((1 - error_rate) ^ toplen) - numstay
     println("numchange: ", numchange)
     lambda = numchange / (3 * toplen)
     cutoff_freq = 1
