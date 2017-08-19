@@ -1,5 +1,5 @@
 """Denoising algorithm designed for Illumina data"""
-function mesearch2(fl::String; error_rate = 0.005, out = fl[1:end-6]*"-mesearched.fasta", fastmode = false)
+function menoise2(fl::String; error_rate = 0.005, out = fl[1:end-6]*"-menoiseed.fasta", fastmode = false)
     println("Reading from ", fl)
     if fl[end-5:end] == ".fasta"
         seqs = read_fasta(fl, seqtype=String)
@@ -78,7 +78,7 @@ function mesearch2(fl::String; error_rate = 0.005, out = fl[1:end-6]*"-mesearche
 end
 
 """Denoising algorithm designed for Illumina data"""
-function mesearch(fl::String; error_rate = 0.005, out = fl[1:end-6]*"-mesearched.fasta", fastmode = false)
+function menoise(fl::String; error_rate = 0.005, out = fl[1:end-6]*"-menoiseed.fasta", fastmode = false)
     println("Reading from ", fl)
     if fl[end-5:end] == ".fasta"
         seqs = read_fasta(fl, seqtype=String)
