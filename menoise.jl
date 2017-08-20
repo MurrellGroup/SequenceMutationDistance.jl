@@ -215,6 +215,9 @@ function menoise3(fl::String; error_rate = 0.005, out = fl[1:end-6]*"-menoiseed.
     end
     println("Read ", length(seqs), " seqs")
     
+    #change domain of scores
+    scores = [phred_to_p(x) for x in scores]
+
     # determine actual cutoff
     numseqs = length(seqs)
     seqfreqs = sorted_freqs(seqs)
@@ -225,18 +228,22 @@ function menoise3(fl::String; error_rate = 0.005, out = fl[1:end-6]*"-menoiseed.
     numchange = numstay / ((1 - error_rate) ^ toplen) - numstay
     println("numchange: ", numchange)
 
-
-    binSize = numchange;
     totProbs = sum(errorProbs);
+    binSize = numstay/e^(-totProbs)
+    println("binsize: ", binSize)
+
     current = maximum(errorProbs);
     sumOthers = totProbs - current;
     probOfNoOtherMutations = e^(-sumOthers);
     probOfOnlyCurrentMut = (current/3)*probOfNoOtherMutations;
-    SDs = 2;
+    #0.577 is euler macaroni. formula is some black box by ben
+    SDs = log(numseqs^2 / (2 * pi * log(n^2/(2 * pi)))) ^ 0.5 * (1+ 0.577/log(numseqs))
     upperThresh = (binSize*probOfOnlyCurrentMut) + 
       SDs*((binSize*probOfOnlyCurrentMut*(1 - probOfOnlyCurrentMut))^0.5)
 
     cutoff_freq = upperThresh
+    #SDs = 6
+
     println("Using cutoff of $cutoff_freq occurrences")
 
     # account for weird observed distributions
