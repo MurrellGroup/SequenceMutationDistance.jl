@@ -166,7 +166,7 @@ function menoise3(fl::String; error_rate = 0.005, out = fl[1:end-6]*"-menoiseed.
     probOfOnlyCurrentMut = (current/3)*probOfNoOtherMutations;
     SDs = 2;
     upperThresh = (binSize*probOfOnlyCurrentMut) + 
-      SDs*((binSize*probOfOnlyCurrentMut (1 - probOfOnlyCurrentMut))^0.5)
+      SDs*((binSize*probOfOnlyCurrentMut * (1 - probOfOnlyCurrentMut))^0.5)
 
     cutoff_freq = upperThresh
     println("Using cutoff of $cutoff_freq occurrences")
