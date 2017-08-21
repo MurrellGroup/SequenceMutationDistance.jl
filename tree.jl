@@ -329,7 +329,7 @@ function treebuild_upgma(sequences::Array{String,1}; distmat = nothing, namearr:
         error("Incorrect number of names")
     end
         
-    for i in 1:(length(sequences)-2)
+    for i in 1:(length(sequences)-1)
         n = size(distmat)[1]
         
         ind1, ind2 = diagonal_ignore_indmin(distmat)
@@ -366,12 +366,12 @@ function treebuild_upgma(sequences::Array{String,1}; distmat = nothing, namearr:
         remaininds = filter(x -> (x != ind1 && x != ind2), 1:n)
         
         #This connects the last two nodes
-        if length(nodes) == 2
+        #=if length(nodes) == 2
             nodes[1].branchlength = distmat[remaininds[1], ind1] - dists[1]
             addchild(nodes[2], nodes[1])
             deleteat!(nodes, 1)
             break
-        end
+        end=#
             
         newrow = []
         for j in remaininds
@@ -476,7 +476,7 @@ function drawtree(root::TreeNode; xStart::Float64=0.0, yStart::Float64=0.0, xDis
             scatter(xStart + xposarr[index], yposdict[leaf], c=bubble_color_vector[leaf.seqindex], zorder=20)
         end
         if (extend)
-            plot([xposarr[index] + xStart + reversemult * nodeextend, xStart + reversemult * maximum(abs.(xposarr))], [yposdict[leaf], yposdict[leaf]], color = "0.8", alpha=0.15)
+            plot([xposarr[index] + xStart + reversemult * nodeextend, xStart + reversemult * maximum(abs.(xposarr))], [yposdict[leaf], yposdict[leaf]], color = "#808080", alpha=0.15)
         end
     end
     
@@ -634,7 +634,7 @@ function drawtreeswithflow(tree1, tree2, flow; figsize=(20,10), scaled=false, na
     for i in 1:size(flow)[1]                                                        
         for j in 1:size(flow)[2]                                                    
             if ordered_flow[i,j] != 0                                                       
-                plot([x1_end + word_size_1, x2_end - word_size_2], [y1arr[i], y2arr[j]], linewidth=thickness*(min_width + ordered_flow[i,j]), "g-", alpha= max(1.0, 0.1 + (ordered_flow[i,j]/maximum(ordered_flow))))
+                plot([x1_end + word_size_1, x2_end - word_size_2], [y1arr[i], y2arr[j]], linewidth=thickness*(min_width + ordered_flow[i,j]), "g-", alpha= min(1.0, 0.1 + (ordered_flow[i,j]/maximum(ordered_flow))))
             end                                                                     
         end                         
     end                             
