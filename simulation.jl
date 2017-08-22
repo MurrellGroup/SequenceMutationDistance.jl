@@ -30,6 +30,18 @@ function simple_evolve(refseq, err_rate)
                  for i in 1:length(refseq)])
 end
 
+"""Creates a fixed number of mutations"""
+
+function fixed_diff_evolve(template::String, n_diffs::Int64)
+    diff_pos = sample(1:length(template), n_diffs, replace=false)
+    char_arr = collect(template)
+    for i in 1:n_diffs
+        char_arr[diff_pos[i]] = sample([x for x in CHAR_NUC_ALPH if x != char_arr[diff_pos[i]]])
+    end
+    return join(char_arr)
+end
+
+
 #-------Functions for simulating amplicon sequences with a PacBio error model--------
 
 """run length encoding of a string"""
