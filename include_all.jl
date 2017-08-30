@@ -10,10 +10,5 @@ using Reexport
 @reexport using JuMP
 @reexport using Clp
 
-include("align.jl")
 include("smdfuncs.jl")
-include("tree.jl")
 include("evodist.jl")
-include("utils.jl")
-include("io.jl")
-include("mesearch.jl")
