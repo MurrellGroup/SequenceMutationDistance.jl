@@ -1,6 +1,8 @@
 function get_pis(sequences)
-    return ([x for x in counts(Int.(collect(string(sequences...)))) if x != 0] ./ sum(length.(sequences)))
+    c= countmap((collect(string(sequences...))))
+    return (c['A'], c['C'], c['G'], c['T']) ./ sum([c['A'], c['C'], c['G'], c['T']]);
 end
+
 function get_transition_mat(seq1, seq2; include_dash_seqs = true)
     a1, a2 = kmer_seeded_align(seq1, seq2)
     
