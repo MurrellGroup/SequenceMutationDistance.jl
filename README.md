@@ -4,12 +4,6 @@ Pkg.clone("SMD")
 
 ```
 
-## Run tests
-```julia
-Pkg.test("SMD")
-
-```
-
 ## Set paths
 ```julia
 using SMD
