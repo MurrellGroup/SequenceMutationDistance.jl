@@ -1,13 +1,6 @@
-
 ## Installation
 ```julia
 Pkg.clone("SMD")
-
-```
-
-## Run tests
-```julia
-Pkg.test("SMD")
 
 ```
 
@@ -16,9 +9,8 @@ Pkg.test("SMD")
 using SMD
 ```
 
-<a id='Files-1'></a>
-# Files
-**`smdfunctions.jl`** &mdash; *File*
+<a id='smdfuncs-1'></a>
+# smdfuncs
 *`dist_matrix`* &mdash; *Function*
 ```julia
 dist_matrix(distr1, distr2; dist_met = kmer_seeded_edit_dist)
