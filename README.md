@@ -1,6 +1,6 @@
 ## Installation
 ```julia
-Pkg.clone("SMD")
+Pkg.clone("https://github.com/MurrellGroup/SMD.jl.git")
 
 ```
 
