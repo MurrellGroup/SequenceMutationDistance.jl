@@ -1,4 +1,8 @@
-"""distances[i, j] is distance from distr1[i] to distr2[j]"""
+"""
+    dist_matrix(distr1, distr2; dist_met = kmer_seeded_edit_dist)
+
+distances[i, j] is distance from distr1[i] to distr2[j]
+"""
 function dist_matrix(distr1, distr2; dist_met = kmer_seeded_edit_dist)
     if distr1 == distr2
         return symmetric_dist_matrix(distr1, dist_met = dist_met)
@@ -13,7 +17,11 @@ function dist_matrix(distr1, distr2; dist_met = kmer_seeded_edit_dist)
     return distances
 end
 
-"""dist_matrix but multithreaded instead"""
+"""
+    dist_matrix_mt(distr1, distr2; dist_met = kmer_seeded_edit_dist)
+
+dist_matrix but multithreaded instead
+"""
 function dist_matrix_mt(distr1, distr2; dist_met = kmer_seeded_edit_dist)
     if distr1 == distr2
         return symmetric_dist_matrix_mt(distr1, dist_met = dist_met)
@@ -29,7 +37,11 @@ function dist_matrix_mt(distr1, distr2; dist_met = kmer_seeded_edit_dist)
 end
 
 
-"""similar to dist_matrix but where distr1 == distr2. Automatically called by dist_matrix"""
+"""
+    symmetric_dist_matrix(distr; dist_met = kmer_seeded_edit_dist)
+
+similar to dist_matrix but where distr1 == distr2. Automatically called by dist_matrix
+"""
 function symmetric_dist_matrix(distr; dist_met = kmer_seeded_edit_dist)
     distances = zeros(length(distr), length(distr))
     for i in 1:length(distr)
@@ -40,7 +52,11 @@ function symmetric_dist_matrix(distr; dist_met = kmer_seeded_edit_dist)
     return distances
 end
 
-"""similar to dist_matrix_mt but where distr1 == distr2. Automatically called by dist_matrix_mt"""
+"""
+symmetric_dist_matrix_mt(distr; dist_met = kmer_seeded_edit_dist)
+
+similar to dist_matrix_mt but where distr1 == distr2. Automatically called by dist_matrix_mt
+"""
 function symmetric_dist_matrix_mt(distr; dist_met = kmer_seeded_edit_dist)
     distances = zeros(length(distr), length(distr))
     @sync @parallel for i in 1:length(distr)
@@ -51,7 +67,15 @@ function symmetric_dist_matrix_mt(distr; dist_met = kmer_seeded_edit_dist)
     return distances
 end
 
-"""Mutation distance from one population to another"""
+"""
+smd_mf(distances_matrix::Array{Float64,2};
+                freq1::Vector{Float64}=Float64[],
+                freq2::Vector{Float64}=Float64[],
+                unbounded_first::Bool=false,
+                unbounded_second::Bool=false)
+
+Mutation distance from one population to another
+"""
 function smd_mf(distances_matrix::Array{Float64,2};
                 freq1::Vector{Float64}=Float64[],
                 freq2::Vector{Float64}=Float64[],
@@ -94,6 +118,11 @@ function smd_mf(distances_matrix::Array{Float64,2};
     return (getobjectivevalue(m), (getvalue(flow)))
 end
 
+"""
+smd_sum(distances_matrix::Array{Float64,2};
+                freq1::Vector{Float64}=Float64[],
+                freq2::Vector{Float64}=Float64[])
+"""
 function smd_sum(distances_matrix::Array{Float64,2};
                 freq1::Vector{Float64}=Float64[],
                 freq2::Vector{Float64}=Float64[])
@@ -101,10 +130,20 @@ function smd_sum(distances_matrix::Array{Float64,2};
 		+ smd_mf(distances_matrix, freq1, freq2, unbounded_second = true)[2]
 end
 
+"""
+smd_distance_wrapper(distmat::Array{Float64,2}, inds1, inds2)
+
+Wrapper for the smd_mf call
+"""
 function smd_distance_wrapper(distmat::Array{Float64,2}, inds1, inds2)
     return smd_mf(distmat[inds1, :][:, inds2])[1]
 end
 
+"""
+fst_wrapper(distmat, inds1, inds2)
+
+Wrapper function
+"""
 function fst_wrapper(distmat, inds1, inds2)
     l1 = length(inds1)
     l2 = length(inds2)
@@ -114,6 +153,9 @@ function fst_wrapper(distmat, inds1, inds2)
     return (between - within)/between
 end
 
+"""
+permutation_test(distmat::Array{Float64,2}; l1 = nothing, l2 = nothing, tests=10000, dist_func = smd_distance_wrapper, randvariation=true)
+"""
 function permutation_test(distmat::Array{Float64,2}; l1 = nothing, l2 = nothing, tests=10000, dist_func = smd_distance_wrapper, randvariation=true)
     #Get the upper right quadrant of the huge matrix
     
