@@ -1,0 +1,3 @@
+using Documenter, SMD
+
+makedocs()
