@@ -11,4 +11,3 @@ using Reexport
 @reexport using Clp
 
 include("smdfuncs.jl")
-include("evodist.jl")
