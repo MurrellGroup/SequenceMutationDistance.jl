@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <meta name="author" content="Ben Murrell">
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>smdfuncs - SMD.jl</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
+  <link href="../assets/Documenter.css" rel="stylesheet">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "smdfuncs";
+    var mkdocs_page_input_path = "smdfuncs.md";
+    var mkdocs_page_url = "/smdfuncs/";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js"></script>
+  <script src="../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> SMD.jl</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Home</a>
+	    </li>
+          
+            <li class="toctree-l1 current">
+		
+    <a class="current" href="./">smdfuncs</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l2"><a href="#smd-functions">SMD Functions</a></li>
+    
+
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">SMD.jl</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+    
+    <li>smdfuncs</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/MurrellGroup/SMD.jl/edit/master/docs/smdfuncs.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <p><a id='SMD-Functions-1'></a></p>
+<h1 id="smd-functions">SMD Functions</h1>
+<ul>
+<li><a href="./#SMD.dist_matrix"><code>SMD.dist_matrix</code></a></li>
+<li><a href="./#SMD.dist_matrix_mt"><code>SMD.dist_matrix_mt</code></a></li>
+<li><a href="./#SMD.fst_wrapper"><code>SMD.fst_wrapper</code></a></li>
+<li><a href="./#SMD.permutation_test"><code>SMD.permutation_test</code></a></li>
+<li><a href="./#SMD.smd_distance_wrapper"><code>SMD.smd_distance_wrapper</code></a></li>
+<li><a href="./#SMD.smd_mf"><code>SMD.smd_mf</code></a></li>
+<li><a href="./#SMD.smd_sum"><code>SMD.smd_sum</code></a></li>
+<li><a href="./#SMD.symmetric_dist_matrix"><code>SMD.symmetric_dist_matrix</code></a></li>
+<li><a href="./#SMD.symmetric_dist_matrix_mt"><code>SMD.symmetric_dist_matrix_mt</code></a></li>
+</ul>
+<p><a id='SMD.dist_matrix' href='#SMD.dist_matrix'>#</a>
+<strong><code>SMD.dist_matrix</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>dist_matrix(distr1, distr2; dist_met = kmer_seeded_edit_dist)
+</code></pre>
+
+<p>distances[i, j] is distance from distr1[i] to distr2[j]</p>
+<p><a target='_blank' href='https://github.com/MurrellGroup/SMD.jl/blob/ac382b9d2bc86379be1cc84952bffba507ea6c35/src/smdfuncs.jl#L1-L5' class='documenter-source'>source</a><br></p>
+<p><a id='SMD.dist_matrix_mt' href='#SMD.dist_matrix_mt'>#</a>
+<strong><code>SMD.dist_matrix_mt</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>dist_matrix_mt(distr1, distr2; dist_met = kmer_seeded_edit_dist)
+</code></pre>
+
+<p>dist_matrix but multithreaded instead</p>
+<p><a target='_blank' href='https://github.com/MurrellGroup/SMD.jl/blob/ac382b9d2bc86379be1cc84952bffba507ea6c35/src/smdfuncs.jl#L20-L24' class='documenter-source'>source</a><br></p>
+<p><a id='SMD.symmetric_dist_matrix' href='#SMD.symmetric_dist_matrix'>#</a>
+<strong><code>SMD.symmetric_dist_matrix</code></strong> &mdash; <em>Function</em>.</p>
+<pre><code>symmetric_dist_matrix(distr; dist_met = kmer_seeded_edit_dist)
+</code></pre>
+
+<p>similar to dist_matrix but where distr1 == distr2. Automatically called by dist_matrix</p>
+<p><a target='_blank' href='https://github.com/MurrellGroup/SMD.jl/blob/ac382b9d2bc86379be1cc84952bffba507ea6c35/src/smdfuncs.jl#L40-L44' class='documenter-source'>source</a><br></p>
+<p><a id='SMD.symmetric_dist_matrix_mt' href='#SMD.symmetric_dist_matrix_mt'>#</a>
+<strong><code>SMD.symmetric_dist_matrix_mt</code></strong> &mdash; <em>Function</em>.</p>
+<p>symmetric_dist_matrix_mt(distr; dist_met = kmer_seeded_edit_dist)</p>
+<p>similar to dist_matrix_mt but where distr1 == distr2. Automatically called by dist_matrix_mt</p>
+<p><a target='_blank' href='https://github.com/MurrellGroup/SMD.jl/blob/ac382b9d2bc86379be1cc84952bffba507ea6c35/src/smdfuncs.jl#L55-L59' class='documenter-source'>source</a><br></p>
+<p><a id='SMD.smd_mf' href='#SMD.smd_mf'>#</a>
+<strong><code>SMD.smd_mf</code></strong> &mdash; <em>Function</em>.</p>
+<p>smd_mf(distances_matrix::Array{Float64,2};                 freq1::Vector{Float64}=Float64[],                 freq2::Vector{Float64}=Float64[],                 unbounded_first::Bool=false,                 unbounded_second::Bool=false)</p>
+<p>Mutation distance from one population to another</p>
+<p><a target='_blank' href='https://github.com/MurrellGroup/SMD.jl/blob/ac382b9d2bc86379be1cc84952bffba507ea6c35/src/smdfuncs.jl#L70-L78' class='documenter-source'>source</a><br></p>
+<p><a id='SMD.smd_sum' href='#SMD.smd_sum'>#</a>
+<strong><code>SMD.smd_sum</code></strong> &mdash; <em>Function</em>.</p>
+<p>smd_sum(distances_matrix::Array{Float64,2};                 freq1::Vector{Float64}=Float64[],                 freq2::Vector{Float64}=Float64[])</p>
+<p><a target='_blank' href='https://github.com/MurrellGroup/SMD.jl/blob/ac382b9d2bc86379be1cc84952bffba507ea6c35/src/smdfuncs.jl#L121-L125' class='documenter-source'>source</a><br></p>
+<p><a id='SMD.smd_distance_wrapper' href='#SMD.smd_distance_wrapper'>#</a>
+<strong><code>SMD.smd_distance_wrapper</code></strong> &mdash; <em>Function</em>.</p>
+<p>smd_distance_wrapper(distmat::Array{Float64,2}, inds1, inds2)</p>
+<p>Wrapper for the smd_mf call</p>
+<p><a target='_blank' href='https://github.com/MurrellGroup/SMD.jl/blob/ac382b9d2bc86379be1cc84952bffba507ea6c35/src/smdfuncs.jl#L133-L137' class='documenter-source'>source</a><br></p>
+<p><a id='SMD.fst_wrapper' href='#SMD.fst_wrapper'>#</a>
+<strong><code>SMD.fst_wrapper</code></strong> &mdash; <em>Function</em>.</p>
+<p>fst_wrapper(distmat, inds1, inds2)</p>
+<p>Wrapper function</p>
+<p><a target='_blank' href='https://github.com/MurrellGroup/SMD.jl/blob/ac382b9d2bc86379be1cc84952bffba507ea6c35/src/smdfuncs.jl#L142-L146' class='documenter-source'>source</a><br></p>
+<p><a id='SMD.permutation_test' href='#SMD.permutation_test'>#</a>
+<strong><code>SMD.permutation_test</code></strong> &mdash; <em>Function</em>.</p>
+<p>permutation_test(distmat::Array{Float64,2}; l1 = nothing, l2 = nothing, tests=10000, dist_func = smd_distance_wrapper, randvariation=true)</p>
+<p><a target='_blank' href='https://github.com/MurrellGroup/SMD.jl/blob/ac382b9d2bc86379be1cc84952bffba507ea6c35/src/smdfuncs.jl#L156-L158' class='documenter-source'>source</a><br></p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href=".." class="btn btn-neutral" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/MurrellGroup/SMD.jl/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href=".." style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
+      <script src="../assets/mathjaxhelper.js"></script>
+      <script src="../search/require.js"></script>
+      <script src="../search/search.js"></script>
+
+</body>
+</html>
