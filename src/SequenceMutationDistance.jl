@@ -1,4 +1,4 @@
-module SMD
+module SequenceMutationDistance
 
     include("include_all.jl")
 
