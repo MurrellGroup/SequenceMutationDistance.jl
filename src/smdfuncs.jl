@@ -17,25 +17,6 @@ function dist_matrix(distr1, distr2; dist_met = kmer_seeded_edit_dist)
     return distances
 end
 
-"""
-    dist_matrix_mt(distr1, distr2; dist_met = kmer_seeded_edit_dist)
-
-dist_matrix but multithreaded instead
-"""
-function dist_matrix_mt(distr1, distr2; dist_met = kmer_seeded_edit_dist)
-    if distr1 == distr2
-        return symmetric_dist_matrix_mt(distr1, dist_met = dist_met)
-    end
-    
-    distances = zeros(length(distr1), length(distr2))
-    @sync @parallel for i in 1:length(distr1)
-        for j in 1:length(distr2)
-            distances[i, j] = dist_met(distr1[i], distr2[j])
-        end
-    end
-    return distances
-end
-
 
 """
     symmetric_dist_matrix(distr; dist_met = kmer_seeded_edit_dist)
@@ -45,21 +26,6 @@ similar to dist_matrix but where distr1 == distr2. Automatically called by dist_
 function symmetric_dist_matrix(distr; dist_met = kmer_seeded_edit_dist)
     distances = zeros(length(distr), length(distr))
     for i in 1:length(distr)
-        for j in i+1:length(distr)
-            distances[i, j] = distances[j, i]  = dist_met(distr[i], distr[j])
-        end
-    end
-    return distances
-end
-
-"""
-symmetric_dist_matrix_mt(distr; dist_met = kmer_seeded_edit_dist)
-
-similar to dist_matrix_mt but where distr1 == distr2. Automatically called by dist_matrix_mt
-"""
-function symmetric_dist_matrix_mt(distr; dist_met = kmer_seeded_edit_dist)
-    distances = zeros(length(distr), length(distr))
-    @sync @parallel for i in 1:length(distr)
         for j in i+1:length(distr)
             distances[i, j] = distances[j, i]  = dist_met(distr[i], distr[j])
         end
@@ -89,7 +55,7 @@ function smd_mf(distances_matrix::Array{Float64,2};
     end
 
     # init solver
-    m = Model(solver = ClpSolver(SolveType=5))
+    m = Model(with_optimizer(Clp.Optimizer, SolveType=5, LogLevel=0))
 
     # flow is a matrix with how much of each distr1 elem maps to how
     # much of each distr2 elem
@@ -114,8 +80,8 @@ function smd_mf(distances_matrix::Array{Float64,2};
     # minimize sum of distance flows
     @objective(m, Min, sum(flow .* distances_matrix))
 
-    status = solve(m)
-    return (getobjectivevalue(m), (getvalue(flow)))
+    optimize!(m)
+    return (JuMP.objective_value(m), (JuMP.value.(flow)))
 end
 
 """
